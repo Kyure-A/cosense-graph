@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "preview:worker": "npm run build && wrangler dev --host 127.0.0.1",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "d3-force": "^3.0.0",
@@ -24,6 +26,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "playwright": "^1.59.1",
     "typescript": "^6.0.2",
-    "vite": "^8.0.8"
+    "vite": "^8.0.8",
+    "wrangler": "^4.90.1"
   }
 }
