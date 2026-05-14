@@ -136,6 +136,7 @@ button {
 .selection-summary,
 .preview-dock,
 .inspector-dock,
+.mobile-settings-toggle,
 .error-toast {
   position: absolute;
   z-index: 3;
@@ -198,6 +199,8 @@ input {
 .load-button,
 .tool-button,
 .open-button,
+.panel-close-button,
+.mobile-settings-toggle,
 .node-list-item {
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -222,6 +225,8 @@ input {
 .load-button:hover,
 .tool-button:hover,
 .open-button:hover,
+.panel-close-button:hover,
+.mobile-settings-toggle:hover,
 .node-list-item:hover {
   border-color: var(--line-strong);
   background: rgba(255, 255, 255, 0.055);
@@ -275,6 +280,27 @@ input {
   gap: 10px;
   padding: 12px;
   overflow: hidden auto;
+}
+
+.settings-header {
+  display: none;
+}
+
+.panel-close-button,
+.mobile-settings-toggle {
+  display: inline-grid;
+  place-items: center;
+  color: #d8deea;
+}
+
+.panel-close-button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.mobile-settings-toggle {
+  display: none;
 }
 
 .search-box {
@@ -631,19 +657,89 @@ input[type="range"] {
   .top-dock {
     top: 12px;
     left: 12px;
-    width: min(360px, calc(100vw - 24px));
+    right: 12px;
+    width: auto;
+    gap: 6px;
+  }
+
+  .project-command {
+    height: 38px;
   }
 
   .stat-strip {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .stat-pill {
+    min-width: 0;
+    height: 30px;
+    padding: 0 6px;
+  }
+
+  .stat-pill strong {
+    font-size: 0.78rem;
+  }
+
+  .stat-pill span {
+    font-size: 0.52rem;
   }
 
   .settings-dock {
-    top: 112px;
-    right: 12px;
-    left: 12px;
+    top: auto;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
     width: auto;
+    max-height: min(76dvh, 620px);
+    padding: 10px;
+    border-color: rgba(148, 155, 166, 0.26);
+    transform: translateY(calc(100% + 24px));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 150ms ease,
+      transform 180ms ease;
+    z-index: 5;
+  }
+
+  .settings-dock.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+  }
+
+  .mobile-settings-toggle {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-color: rgba(123, 143, 178, 0.42);
+    background: rgba(31, 34, 41, 0.92);
+    box-shadow:
+      0 14px 28px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    z-index: 4;
+  }
+
+  .app-shell.has-open-settings .mobile-settings-toggle {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .app-shell.has-active-node .mobile-settings-toggle {
+    bottom: calc(min(27dvh, 220px) + max(20px, env(safe-area-inset-bottom)));
   }
 
   .tool-grid {
@@ -671,7 +767,7 @@ input[type="range"] {
 
 @media (max-width: 460px) {
   .stat-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .micro-slider {

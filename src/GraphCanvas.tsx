@@ -13,6 +13,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
@@ -96,6 +97,7 @@ type ReducerState = {
   largeGraphMode: boolean;
   ultraGraphMode: boolean;
   timelineCutoff: number;
+  compactMode: boolean;
 };
 
 type DragGestureState = {
@@ -178,8 +180,10 @@ export function GraphCanvas({
     largeGraphMode: false,
     ultraGraphMode: false,
     timelineCutoff: Number.POSITIVE_INFINITY,
+    compactMode: false,
   });
 
+  const compactMode = useCompactViewport();
   const largeGraphMode =
     graph.nodes.length >= LARGE_GRAPH_NODES || graph.links.length >= LARGE_GRAPH_EDGES;
   const ultraGraphMode =
@@ -380,6 +384,7 @@ export function GraphCanvas({
       largeGraphMode,
       ultraGraphMode,
       timelineCutoff: reducerStateRef.current.timelineCutoff,
+      compactMode,
       focusedIds:
         selectedId && graphRef.current
           ? focusedNodeIds(graphRef.current, selectedId)
@@ -398,6 +403,7 @@ export function GraphCanvas({
     );
   }, [
     focusMode,
+    compactMode,
     largeGraphMode,
     matchedIds,
     selectedId,
@@ -420,6 +426,7 @@ export function GraphCanvas({
       largeGraphMode,
       ultraGraphMode,
       timelineCutoff: Number.POSITIVE_INFINITY,
+      compactMode,
       focusedIds: selectedId ? focusedNodeIds(sigmaGraph, selectedId) : undefined,
     };
 
@@ -432,12 +439,12 @@ export function GraphCanvas({
       hideLabelsOnMove: true,
       enableCameraPanning: true,
       itemSizesReference: "screen",
-      labelDensity: ultraGraphMode ? 0.02 : largeGraphMode ? 0.12 : 0.92,
-      labelGridCellSize: ultraGraphMode ? 180 : largeGraphMode ? 132 : 96,
-      labelRenderedSizeThreshold: ultraGraphMode ? 18 : largeGraphMode ? 14 : 12,
+      labelDensity: compactMode ? 0.08 : ultraGraphMode ? 0.02 : largeGraphMode ? 0.12 : 0.92,
+      labelGridCellSize: compactMode ? 150 : ultraGraphMode ? 180 : largeGraphMode ? 132 : 96,
+      labelRenderedSizeThreshold: compactMode ? 17 : ultraGraphMode ? 18 : largeGraphMode ? 14 : 12,
       labelColor: { color: "#c3cad6" },
       labelFont: "Inter, ui-sans-serif, system-ui, sans-serif",
-      labelSize: 12,
+      labelSize: compactMode ? 10 : 12,
       labelWeight: "500",
       minEdgeThickness: ultraGraphMode ? 0.3 : 0.5,
       renderEdgeLabels: false,
@@ -498,6 +505,7 @@ export function GraphCanvas({
     };
   }, [
     largeGraphMode,
+    compactMode,
     onHover,
     onOpenPage,
     onPreviewChange,
@@ -656,6 +664,27 @@ export function GraphCanvas({
       />
     </div>
   );
+}
+
+function useCompactViewport() {
+  const [compact, setCompact] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : window.matchMedia("(max-width: 760px)").matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const update = () => setCompact(query.matches);
+
+    update();
+    query.addEventListener("change", update);
+    return () => {
+      query.removeEventListener("change", update);
+    };
+  }, []);
+
+  return compact;
 }
 
 function eventPoint(
@@ -898,6 +927,7 @@ function reduceNode({
   const selected = state.selectedId === node;
   const matched = state.matchedIds.has(node);
   const active = hovered || selected || matched;
+  const labeled = hovered || selected || (!state.compactMode && matched);
   const dimmed = Boolean(
     state.focusMode &&
       state.focusedIds &&
@@ -922,10 +952,17 @@ function reduceNode({
         : data.isGhost
           ? rgba("#707887", 0.62)
           : rgba(data.baseColor, 0.94),
-    forceLabel: active,
+    forceLabel: labeled,
     highlighted: active,
     hidden: hiddenByTimeline,
-    label: state.ultraGraphMode && !active ? null : dimmed && !active ? null : data.label,
+    label:
+      state.compactMode && !labeled
+        ? null
+        : state.ultraGraphMode && !active
+          ? null
+          : dimmed && !active
+            ? null
+            : data.label,
     size: active
       ? data.baseSize * (selected ? 1.65 : hovered ? 1.38 : 1.22)
       : dimmed

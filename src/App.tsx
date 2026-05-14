@@ -8,8 +8,10 @@ import {
   Network,
   Play,
   Search,
+  SlidersHorizontal,
   Sparkles,
   Tag,
+  X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -51,6 +53,7 @@ export function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [animateVersion, setAnimateVersion] = useState(0);
   const [viewVersion, setViewVersion] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [preview, setPreview] = useState<PreviewState | undefined>();
   const [details, setDetails] = useState<Record<string, CosensePageDetail>>({});
   const [loading, setLoading] = useState(false);
@@ -158,6 +161,7 @@ export function App() {
     setSelectedId(undefined);
     setHoveredId(undefined);
     setPreview(undefined);
+    setSettingsOpen(false);
     setDetails({});
     pendingDetailIdsRef.current.clear();
 
@@ -238,7 +242,11 @@ export function App() {
   }, [preview]);
 
   return (
-    <main className="app-shell">
+    <main
+      className={`app-shell ${activeNode ? "has-active-node" : ""} ${
+        settingsOpen ? "has-open-settings" : ""
+      }`}
+    >
       <section className="graph-stage" aria-label="Cosense graph">
         <GraphCanvas
           graph={graph}
@@ -287,7 +295,35 @@ export function App() {
 
       {error ? <p className="error-toast">{error}</p> : null}
 
-      <aside className="settings-dock" aria-label="settings">
+      <button
+        className={`mobile-settings-toggle ${settingsOpen ? "is-open" : ""}`}
+        type="button"
+        title="Settings"
+        aria-label="Settings"
+        aria-expanded={settingsOpen}
+        aria-controls="graph-settings"
+        onClick={() => setSettingsOpen((value) => !value)}
+      >
+        <SlidersHorizontal size={19} />
+      </button>
+
+      <aside
+        id="graph-settings"
+        className={`settings-dock ${settingsOpen ? "is-open" : ""}`}
+        aria-label="settings"
+      >
+        <div className="settings-header">
+          <SectionTitle>Settings</SectionTitle>
+          <button
+            className="panel-close-button"
+            type="button"
+            title="Close"
+            aria-label="Close settings"
+            onClick={() => setSettingsOpen(false)}
+          >
+            <X size={16} />
+          </button>
+        </div>
         <label className="search-box">
           <Search size={16} />
           <input
@@ -305,7 +341,10 @@ export function App() {
                 className="node-list-item"
                 key={node.id}
                 type="button"
-                onClick={() => setSelectedId(node.id)}
+                onClick={() => {
+                  setSelectedId(node.id);
+                  setSettingsOpen(false);
+                }}
               >
                 <span className="node-swatch" style={{ backgroundColor: node.color }} />
                 <span>{node.title}</span>
