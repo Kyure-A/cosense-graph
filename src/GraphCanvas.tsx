@@ -1258,24 +1258,33 @@ function computeForceLayout(pageGraph: PageGraph, motion: MotionSettings) {
       "link",
       forceLink<LayoutNode, LayoutLink>(layoutLinks)
         .id((node) => node.id)
-        .distance((link) =>
-          (link.value >= 1
-            ? 22 + Math.sqrt(link.source.degree + link.target.degree) * 2.4
-            : 30 + Math.sqrt(link.source.degree + link.target.degree) * 2.8) *
-          linkDistanceScale,
-        )
-        .strength((link) => (link.value >= 1 ? 0.18 : 0.08) * linkStrengthScale),
+        .distance((link) => {
+          const combinedDegree = link.source.degree + link.target.degree;
+          const hubSpread = Math.pow(combinedDegree, 0.62);
+          return (
+            (link.value >= 1
+              ? 30 + hubSpread * 5.8
+              : 42 + hubSpread * 6.8) * linkDistanceScale
+          );
+        })
+        .strength((link) => {
+          const combinedDegree = link.source.degree + link.target.degree;
+          const hubSlack = 1 + Math.sqrt(combinedDegree) * 0.018;
+          return ((link.value >= 1 ? 0.16 : 0.065) * linkStrengthScale) / hubSlack;
+        }),
     )
     .force(
       "charge",
       forceManyBody<LayoutNode>().strength((node) =>
-        (node.isGhost ? -12 : -26 - Math.sqrt(node.degree) * 5.4) * repelScale,
+        (node.isGhost ? -14 : -34 - Math.pow(node.degree, 0.62) * 8.2) *
+        repelScale,
       ),
     )
     .force(
       "collide",
       forceCollide<LayoutNode>().radius(
-        (node) => (node.isGhost ? 3.8 : 6.5) + Math.sqrt(node.degree),
+        (node) =>
+          (node.isGhost ? 4.5 : 8.5) + Math.pow(node.degree, 0.58) * 1.6,
       ),
     )
     .force(
@@ -1348,14 +1357,20 @@ function computeFastLayout(pageGraph: PageGraph, motion: MotionSettings) {
       (a, b) => b.degree - a.degree || a.title.localeCompare(b.title),
     );
     const center = centers.get(clusterId) ?? { x: 0, y: 0 };
-    const clusterSpread = clamp(0.1 + Math.sqrt(nodes.length) * 0.01, 0.14, 0.52);
+    const clusterSpread = clamp(
+      0.14 + Math.sqrt(nodes.length) * 0.014 + Math.sqrt(nodes[0]?.degree ?? 0) * 0.008,
+      0.18,
+      0.72,
+    );
 
     for (let index = 0; index < nodes.length; index += 1) {
       const node = nodes[index];
       const rank = index + 1;
       const angle =
         goldenAngle * rank + ((hashString(node.id) % 360) / 360) * Math.PI * 0.28;
-      const spiral = Math.sqrt(rank / Math.max(1, nodes.length));
+      const spiral = Math.sqrt(
+        (rank + Math.sqrt(node.degree) * 0.85) / Math.max(1, nodes.length),
+      );
       const radial = clusterSpread * spiral;
       const localJitter = node.isGhost ? 0.016 : 0.006;
 
