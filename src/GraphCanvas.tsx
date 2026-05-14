@@ -1260,11 +1260,11 @@ function computeForceLayout(pageGraph: PageGraph, motion: MotionSettings) {
         .id((node) => node.id)
         .distance((link) => {
           const combinedDegree = link.source.degree + link.target.degree;
-          const hubSpread = Math.pow(combinedDegree, 0.62);
+          const hubSpread = 1 - Math.exp(-combinedDegree / 42);
           return (
             (link.value >= 1
-              ? 30 + hubSpread * 5.8
-              : 42 + hubSpread * 6.8) * linkDistanceScale
+              ? 34 + hubSpread * 150
+              : 48 + hubSpread * 175) * linkDistanceScale
           );
         })
         .strength((link) => {
