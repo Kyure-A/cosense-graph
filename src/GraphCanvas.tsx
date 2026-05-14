@@ -112,6 +112,17 @@ type DragGestureState = {
   lastClickNode?: string;
 };
 
+type TouchPoint = {
+  x: number;
+  y: number;
+};
+
+type PinchGestureState = {
+  active: boolean;
+  startDistance: number;
+  startRatio: number;
+};
+
 const DRAG_THRESHOLD = 2;
 const DOUBLE_CLICK_DELAY = 280;
 const WHEEL_ZOOM_SENSITIVITY = 0.006;
@@ -158,6 +169,12 @@ export function GraphCanvas({
   const requestedFitVersionRef = useRef(viewVersion);
   const layoutFrameRef = useRef<number | null>(null);
   const timelineFrameRef = useRef<number | null>(null);
+  const activePointersRef = useRef(new Map<number, TouchPoint>());
+  const pinchGestureRef = useRef<PinchGestureState>({
+    active: false,
+    startDistance: 0,
+    startRatio: 1,
+  });
   const dragGestureRef = useRef<DragGestureState>({
     pointerDown: false,
     pointerId: undefined,
@@ -230,7 +247,18 @@ export function GraphCanvas({
     event: ReactPointerEvent<HTMLDivElement>,
   ) {
     if (event.button !== 0) return;
+    activePointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    event.currentTarget.setPointerCapture(event.pointerId);
     setPreview(undefined);
+    if (event.pointerType === "touch" && activePointersRef.current.size >= 2) {
+      beginPinchGesture();
+      clearHover();
+      return;
+    }
+
     dragGestureRef.current.pointerDown = true;
     dragGestureRef.current.pointerId = event.pointerId;
     dragGestureRef.current.dragging = false;
@@ -238,16 +266,27 @@ export function GraphCanvas({
     dragGestureRef.current.startY = event.clientY;
     dragGestureRef.current.lastX = event.clientX;
     dragGestureRef.current.lastY = event.clientY;
-    event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function handleInteractionPointerMove(
     event: ReactPointerEvent<HTMLDivElement>,
   ) {
+    if (activePointersRef.current.has(event.pointerId)) {
+      activePointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
     const renderer = rendererRef.current;
     const sigmaGraphInstance = graphRef.current;
     const layer = interactionLayerRef.current;
     if (!renderer || !sigmaGraphInstance || !layer) return;
+
+    if (pinchGestureRef.current.active) {
+      applyPinchZoom();
+      return;
+    }
 
     if (
       !dragGestureRef.current.pointerDown ||
@@ -289,16 +328,22 @@ export function GraphCanvas({
   function handleInteractionPointerUp(
     event: ReactPointerEvent<HTMLDivElement>,
   ) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    activePointersRef.current.delete(event.pointerId);
+    if (pinchGestureRef.current.active) {
+      endPinchGesture();
+      return;
+    }
+
     const renderer = rendererRef.current;
     const sigmaGraphInstance = graphRef.current;
     const layer = interactionLayerRef.current;
     if (!renderer || !sigmaGraphInstance || !layer) return;
-    if (dragGestureRef.current.pointerId !== event.pointerId) return;
 
+    if (dragGestureRef.current.pointerId !== event.pointerId) return;
     const wasDragging = dragGestureRef.current.dragging;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
     dragGestureRef.current.pointerDown = false;
     dragGestureRef.current.pointerId = undefined;
     dragGestureRef.current.dragging = false;
@@ -340,6 +385,78 @@ export function GraphCanvas({
       clearHover();
     }
     setPreview(undefined);
+  }
+
+  function beginPinchGesture() {
+    const renderer = rendererRef.current;
+    const layer = interactionLayerRef.current;
+    const pinch = currentPinchPoints(layer);
+    if (!renderer || !layer || !pinch) return;
+
+    pinchGestureRef.current = {
+      active: true,
+      startDistance: pinch.distance,
+      startRatio: renderer.getCamera().getState().ratio,
+    };
+    dragGestureRef.current.pointerDown = false;
+    dragGestureRef.current.pointerId = undefined;
+    dragGestureRef.current.dragging = false;
+    setPreview(undefined);
+  }
+
+  function applyPinchZoom() {
+    const renderer = rendererRef.current;
+    const layer = interactionLayerRef.current;
+    const gesture = pinchGestureRef.current;
+    const pinch = currentPinchPoints(layer);
+    if (
+      !renderer ||
+      !layer ||
+      !gesture.active ||
+      !pinch ||
+      gesture.startDistance <= 0
+    ) {
+      return;
+    }
+
+    const scale = pinch.distance / gesture.startDistance;
+    const nextRatio = renderer
+      .getCamera()
+      .getBoundedRatio(gesture.startRatio / Math.max(0.2, scale));
+
+    renderer.getCamera().setState(
+      renderer.getViewportZoomedState(pinch.center, nextRatio),
+    );
+  }
+
+  function endPinchGesture() {
+    pinchGestureRef.current.active = false;
+    setPreview(undefined);
+  }
+
+  function currentPinchPoints(container: HTMLDivElement | null) {
+    if (!container) return null;
+
+    const points = [...activePointersRef.current.values()].slice(0, 2);
+    if (points.length < 2) return null;
+
+    const rect = container.getBoundingClientRect();
+    const first = {
+      x: points[0].x - rect.left,
+      y: points[0].y - rect.top,
+    };
+    const second = {
+      x: points[1].x - rect.left,
+      y: points[1].y - rect.top,
+    };
+
+    return {
+      center: {
+        x: (first.x + second.x) / 2,
+        y: (first.y + second.y) / 2,
+      },
+      distance: Math.hypot(second.x - first.x, second.y - first.y),
+    };
   }
 
   useEffect(() => {
