@@ -487,28 +487,6 @@ export function App() {
           </div>
         </aside>
 
-      <aside className="selection-summary" aria-label="summary">
-        <div className="detail-kicker">
-          <span className="detail-swatch warm" />
-          <span>{loadedProject || project}</span>
-        </div>
-        <strong>{graph.stats.pages.toLocaleString()} pages</strong>
-        <span>{graph.stats.renderedNodes.toLocaleString()} shown</span>
-        <span>{graph.stats.renderedLinks.toLocaleString()} links</span>
-        <span>{graph.stats.components.toLocaleString()} groups</span>
-      </aside>
-
-      {previewNode && previewDetail ? (
-        <aside className="preview-dock" style={previewStyle} aria-label="preview">
-          <div className="detail-kicker">
-            <span className="detail-swatch" style={{ backgroundColor: previewNode.color }} />
-            <span>preview</span>
-          </div>
-          <h2>{previewNode.title}</h2>
-          <p>{detailExcerpt(previewDetail)}</p>
-        </aside>
-      ) : null}
-
         <aside
           className={`inspector-dock ${activeNode ? "is-active" : "is-summary"}`}
           aria-label="selection"
@@ -611,6 +589,28 @@ export function App() {
           )}
         </aside>
       </div>
+
+      <aside className="selection-summary" aria-label="summary">
+        <div className="detail-kicker">
+          <span className="detail-swatch warm" />
+          <span>{loadedProject || project}</span>
+        </div>
+        <strong>{graph.stats.pages.toLocaleString()} pages</strong>
+        <span>{graph.stats.renderedNodes.toLocaleString()} shown</span>
+        <span>{graph.stats.renderedLinks.toLocaleString()} links</span>
+        <span>{graph.stats.components.toLocaleString()} groups</span>
+      </aside>
+
+      {previewNode && previewDetail ? (
+        <aside className="preview-dock" style={previewStyle} aria-label="preview">
+          <div className="detail-kicker">
+            <span className="detail-swatch" style={{ backgroundColor: previewNode.color }} />
+            <span>preview</span>
+          </div>
+          <h2>{previewNode.title}</h2>
+          <p>{detailExcerpt(previewDetail)}</p>
+        </aside>
+      ) : null}
     </main>
   );
 }

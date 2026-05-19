@@ -280,24 +280,6 @@ input {
   overflow: auto;
 }
 
-.right-rail {
-  top: 18px;
-  right: 18px;
-  bottom: 18px;
-  width: min(308px, calc(100vw - 36px));
-  display: grid;
-  gap: 10px;
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
-.right-rail .settings-dock,
-.right-rail .inspector-dock {
-  position: relative;
-  top: auto;
-  right: auto;
-  width: auto;
-}
-
 .settings-header {
   display: none;
 }
@@ -666,6 +648,36 @@ input[type="range"] {
   }
 }
 
+@media (min-width: 761px) {
+  .right-rail {
+    top: 18px;
+    right: 18px;
+    bottom: 18px;
+    width: min(308px, calc(100vw - 36px));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .right-rail .settings-dock,
+  .right-rail .inspector-dock {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: auto;
+  }
+
+  .right-rail .settings-dock {
+    flex: 0 1 auto;
+  }
+
+  .right-rail .inspector-dock {
+    flex: 1 1 0;
+  }
+}
+
 @media (max-width: 760px) {
   .right-rail {
     display: contents;
@@ -769,6 +781,10 @@ input[type="range"] {
     bottom: 12px;
   }
 
+  .app-shell.has-active-node .selection-summary {
+    display: none;
+  }
+
   .inspector-dock {
     right: 12px;
     bottom: 12px;
@@ -795,9 +811,5 @@ input[type="range"] {
 
   .tool-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .selection-summary {
-    display: none;
   }
 }
