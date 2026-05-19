@@ -307,184 +307,185 @@ export function App() {
         <SlidersHorizontal size={19} />
       </button>
 
-      <aside
-        id="graph-settings"
-        className={`settings-dock ${settingsOpen ? "is-open" : ""}`}
-        aria-label="settings"
-      >
-        <div className="settings-header">
-          <SectionTitle>Settings</SectionTitle>
-          <button
-            className="panel-close-button"
-            type="button"
-            title="Close"
-            aria-label="Close settings"
-            onClick={() => setSettingsOpen(false)}
-          >
-            <X size={16} />
-          </button>
-        </div>
-        <label className="search-box">
-          <Search size={16} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Filter graph"
-            spellCheck={false}
-          />
-        </label>
+      <div className="right-rail">
+        <aside
+          id="graph-settings"
+          className={`settings-dock ${settingsOpen ? "is-open" : ""}`}
+          aria-label="settings"
+        >
+          <div className="settings-header">
+            <SectionTitle>Settings</SectionTitle>
+            <button
+              className="panel-close-button"
+              type="button"
+              title="Close"
+              aria-label="Close settings"
+              onClick={() => setSettingsOpen(false)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <label className="search-box">
+            <Search size={16} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Filter graph"
+              spellCheck={false}
+            />
+          </label>
 
-        {matchedNodes.length > 0 ? (
-          <div className="search-results" aria-label="search results">
-            {matchedNodes.slice(0, 6).map((node) => (
+          {matchedNodes.length > 0 ? (
+            <div className="search-results" aria-label="search results">
+              {matchedNodes.slice(0, 6).map((node) => (
+                <button
+                  className="node-list-item"
+                  key={node.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedId(node.id);
+                    setSettingsOpen(false);
+                  }}
+                >
+                  <span className="node-swatch" style={{ backgroundColor: node.color }} />
+                  <span>{node.title}</span>
+                  <strong>{node.degree}</strong>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="dock-section">
+            <SectionTitle>Filters</SectionTitle>
+            <div className="mini-sliders">
+              <Slider
+                id="max-pages"
+                label="pages"
+                value={maxPages}
+                displayValue={Math.min(maxPages, pages.length || maxPages)}
+                min={80}
+                max={pageLimitMax}
+                step={pageLimitStep}
+                onChange={setMaxPages}
+              />
+              <Slider
+                id="min-links"
+                label="links"
+                value={minLinks}
+                displayValue={minLinks}
+                min={0}
+                max={8}
+                step={1}
+                onChange={setMinLinks}
+              />
+            </div>
+          </div>
+
+          <div className="dock-section">
+            <SectionTitle>Forces</SectionTitle>
+            <div className="mini-sliders">
+              <Slider
+                id="center-force"
+                label="center"
+                value={centerForce}
+                displayValue={centerForce}
+                min={0}
+                max={100}
+                step={1}
+                onChange={setCenterForce}
+              />
+              <Slider
+                id="repel-force"
+                label="repel"
+                value={repelForce}
+                displayValue={repelForce}
+                min={0}
+                max={100}
+                step={1}
+                onChange={setRepelForce}
+              />
+              <Slider
+                id="link-force"
+                label="link"
+                value={linkForce}
+                displayValue={linkForce}
+                min={0}
+                max={100}
+                step={1}
+                onChange={setLinkForce}
+              />
+              <Slider
+                id="link-distance"
+                label="distance"
+                value={linkDistance}
+                displayValue={linkDistance}
+                min={0}
+                max={100}
+                step={1}
+                onChange={setLinkDistance}
+              />
+            </div>
+          </div>
+
+          <div className="dock-section">
+            <SectionTitle>Display</SectionTitle>
+            <div className="tool-grid" aria-label="graph tools">
+              <IconToggle
+                active={includeGhosts}
+                icon={<Ghost size={16} />}
+                label="refs"
+                title="Referenced pages"
+                onClick={() => setIncludeGhosts((value) => !value)}
+              />
+              <IconToggle
+                active={showParticles}
+                icon={<Sparkles size={16} />}
+                label="flow"
+                title="Link flow"
+                onClick={() => setShowParticles((value) => !value)}
+              />
+              <IconToggle
+                active={showLabels}
+                icon={<Tag size={16} />}
+                label="text"
+                title="Labels"
+                onClick={() => setShowLabels((value) => !value)}
+              />
+              <IconToggle
+                active={focusMode}
+                icon={<Focus size={16} />}
+                label="focus"
+                title="Focus mode"
+                onClick={() => setFocusMode((value) => !value)}
+              />
+              <IconToggle
+                active={includeOrphans}
+                icon={<Braces size={16} />}
+                label="orph"
+                title="Orphan pages"
+                onClick={() => setIncludeOrphans((value) => !value)}
+              />
               <button
-                className="node-list-item"
-                key={node.id}
+                className="tool-button"
                 type="button"
-                onClick={() => {
-                  setSelectedId(node.id);
-                  setSettingsOpen(false);
-                }}
+                title="Animate"
+                onClick={() => setAnimateVersion((version) => version + 1)}
               >
-                <span className="node-swatch" style={{ backgroundColor: node.color }} />
-                <span>{node.title}</span>
-                <strong>{node.degree}</strong>
+                <Play size={16} />
+                <span>anim</span>
               </button>
-            ))}
+              <button
+                className="tool-button"
+                type="button"
+                title="Fit graph"
+                onClick={() => setViewVersion((version) => version + 1)}
+              >
+                <Maximize2 size={16} />
+                <span>fit</span>
+              </button>
+            </div>
           </div>
-        ) : null}
-
-        <div className="dock-section">
-          <SectionTitle>Filters</SectionTitle>
-          <div className="mini-sliders">
-            <Slider
-              id="max-pages"
-              label="pages"
-              value={maxPages}
-              displayValue={Math.min(maxPages, pages.length || maxPages)}
-              min={80}
-              max={pageLimitMax}
-              step={pageLimitStep}
-              onChange={setMaxPages}
-            />
-            <Slider
-              id="min-links"
-              label="links"
-              value={minLinks}
-              displayValue={minLinks}
-              min={0}
-              max={8}
-              step={1}
-              onChange={setMinLinks}
-            />
-          </div>
-        </div>
-
-        <div className="dock-section">
-          <SectionTitle>Forces</SectionTitle>
-          <div className="mini-sliders">
-            <Slider
-              id="center-force"
-              label="center"
-              value={centerForce}
-              displayValue={centerForce}
-              min={0}
-              max={100}
-              step={1}
-              onChange={setCenterForce}
-            />
-            <Slider
-              id="repel-force"
-              label="repel"
-              value={repelForce}
-              displayValue={repelForce}
-              min={0}
-              max={100}
-              step={1}
-              onChange={setRepelForce}
-            />
-            <Slider
-              id="link-force"
-              label="link"
-              value={linkForce}
-              displayValue={linkForce}
-              min={0}
-              max={100}
-              step={1}
-              onChange={setLinkForce}
-            />
-            <Slider
-              id="link-distance"
-              label="dist"
-              value={linkDistance}
-              displayValue={linkDistance}
-              min={0}
-              max={100}
-              step={1}
-              onChange={setLinkDistance}
-            />
-          </div>
-        </div>
-
-        <div className="dock-section">
-          <SectionTitle>Display</SectionTitle>
-          <div className="tool-grid" aria-label="graph tools">
-            <IconToggle
-              active={includeGhosts}
-              icon={<Ghost size={16} />}
-              label="refs"
-              title="Referenced pages"
-              onClick={() => setIncludeGhosts((value) => !value)}
-            />
-            <IconToggle
-              active={showParticles}
-              icon={<Sparkles size={16} />}
-              label="flow"
-              title="Link flow"
-              onClick={() => setShowParticles((value) => !value)}
-            />
-            <IconToggle
-              active={showLabels}
-              icon={<Tag size={16} />}
-              label="text"
-              title="Labels"
-              onClick={() => setShowLabels((value) => !value)}
-            />
-            <IconToggle
-              active={focusMode}
-              icon={<Focus size={16} />}
-              label="focus"
-              title="Focus mode"
-              onClick={() => setFocusMode((value) => !value)}
-            />
-            <IconToggle
-              active={includeOrphans}
-              icon={<Braces size={16} />}
-              label="orph"
-              title="Orphan pages"
-              onClick={() => setIncludeOrphans((value) => !value)}
-            />
-            <button
-              className="tool-button"
-              type="button"
-              title="Animate"
-              onClick={() => setAnimateVersion((version) => version + 1)}
-            >
-              <Play size={16} />
-              <span>anim</span>
-            </button>
-            <button
-              className="tool-button"
-              type="button"
-              title="Fit graph"
-              onClick={() => setViewVersion((version) => version + 1)}
-            >
-              <Maximize2 size={16} />
-              <span>fit</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+        </aside>
 
       <aside className="selection-summary" aria-label="summary">
         <div className="detail-kicker">
@@ -508,107 +509,108 @@ export function App() {
         </aside>
       ) : null}
 
-      <aside
-        className={`inspector-dock ${activeNode ? "is-active" : "is-summary"}`}
-        aria-label="selection"
-      >
-        {activeNode ? (
-          <div className="page-detail">
-            <div className="detail-kicker">
-              <span
-                className="detail-swatch"
-                style={{ backgroundColor: activeNode.color }}
-              />
-              <span>{activeNode.isGhost ? "reference" : "page"}</span>
-            </div>
-            <h1>{activeNode.title}</h1>
-            {activeNode.image ? (
-              <img className="page-image" src={activeNode.image} alt="" loading="lazy" />
-            ) : null}
-            <div className="detail-stats">
-              <Metric value={activeNode.degree} label="degree" />
-              <Metric value={activeNode.incoming} label="in" />
-              <Metric value={activeNode.outgoing} label="out" />
-            </div>
-            <div className="detail-actions">
-              {activeNode.updated ? (
-                <span>
-                  {new Date(activeNode.updated * 1000).toLocaleDateString("ja-JP")}
-                </span>
-              ) : (
-                <span>{loadedProject || project}</span>
-              )}
-              <button
-                className="open-button"
-                type="button"
-                disabled={!loadedProject}
-                onClick={() => openNode(activeNode.id)}
-              >
-                <ExternalLink size={17} />
-                <span>open</span>
-              </button>
-            </div>
-            {activeDetail ? (
-              <>
-                <InfoSection title="Overview">
-                  <p className="detail-text">{detailExcerpt(activeDetail)}</p>
-                </InfoSection>
-                {activeDetail.tags.length > 0 ? (
-                  <InfoSection title="Tags">
-                    <div className="tag-list">
-                      {activeDetail.tags.slice(0, 12).map((tag) => (
-                        <span className="tag-chip" key={tag}>
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  </InfoSection>
-                ) : null}
-              </>
-            ) : null}
-            {activeBacklinks.length > 0 ? (
-              <InfoSection title={`Backlinks (${activeBacklinks.length})`}>
-                <div className="node-list compact">
-                  {activeBacklinks.map((node) => (
-                    <button
-                      className="node-list-item"
-                      key={node.id}
-                      type="button"
-                      onClick={() => setSelectedId(node.id)}
-                    >
-                      <span className="node-swatch" style={{ backgroundColor: node.color }} />
-                      <span>{node.title}</span>
-                      <strong>{node.degree}</strong>
-                    </button>
-                  ))}
-                </div>
-              </InfoSection>
-            ) : null}
-          </div>
-        ) : (
-          <div className="page-detail">
-            <div className="detail-kicker">
-              <span className="detail-swatch warm" />
-              <span>{loadedProject || project}</span>
-            </div>
-            <h1>{graph.stats.pages.toLocaleString()} pages</h1>
-            <div className="node-list">
-              {importantNodes.map((node) => (
+        <aside
+          className={`inspector-dock ${activeNode ? "is-active" : "is-summary"}`}
+          aria-label="selection"
+        >
+          {activeNode ? (
+            <div className="page-detail">
+              <div className="detail-kicker">
+                <span
+                  className="detail-swatch"
+                  style={{ backgroundColor: activeNode.color }}
+                />
+                <span>{activeNode.isGhost ? "reference" : "page"}</span>
+              </div>
+              <h1>{activeNode.title}</h1>
+              {activeNode.image ? (
+                <img className="page-image" src={activeNode.image} alt="" loading="lazy" />
+              ) : null}
+              <div className="detail-stats">
+                <Metric value={activeNode.degree} label="degree" />
+                <Metric value={activeNode.incoming} label="in" />
+                <Metric value={activeNode.outgoing} label="out" />
+              </div>
+              <div className="detail-actions">
+                {activeNode.updated ? (
+                  <span>
+                    {new Date(activeNode.updated * 1000).toLocaleDateString("ja-JP")}
+                  </span>
+                ) : (
+                  <span>{loadedProject || project}</span>
+                )}
                 <button
-                  className="node-list-item"
-                  key={node.id}
+                  className="open-button"
                   type="button"
-                  onClick={() => setSelectedId(node.id)}
+                  disabled={!loadedProject}
+                  onClick={() => openNode(activeNode.id)}
                 >
-                  <span className="node-swatch" style={{ backgroundColor: node.color }} />
-                  <span>{node.title}</span>
-                  <strong>{node.degree}</strong>
+                  <ExternalLink size={17} />
+                  <span>open</span>
                 </button>
-              ))}
+              </div>
+              {activeDetail ? (
+                <>
+                  <InfoSection title="Overview">
+                    <p className="detail-text">{detailExcerpt(activeDetail)}</p>
+                  </InfoSection>
+                  {activeDetail.tags.length > 0 ? (
+                    <InfoSection title="Tags">
+                      <div className="tag-list">
+                        {activeDetail.tags.slice(0, 12).map((tag) => (
+                          <span className="tag-chip" key={tag}>
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </InfoSection>
+                  ) : null}
+                </>
+              ) : null}
+              {activeBacklinks.length > 0 ? (
+                <InfoSection title={`Backlinks (${activeBacklinks.length})`}>
+                  <div className="node-list compact">
+                    {activeBacklinks.map((node) => (
+                      <button
+                        className="node-list-item"
+                        key={node.id}
+                        type="button"
+                        onClick={() => setSelectedId(node.id)}
+                      >
+                        <span className="node-swatch" style={{ backgroundColor: node.color }} />
+                        <span>{node.title}</span>
+                        <strong>{node.degree}</strong>
+                      </button>
+                    ))}
+                  </div>
+                </InfoSection>
+              ) : null}
             </div>
-          </div>
-        )}
-      </aside>
+          ) : (
+            <div className="page-detail">
+              <div className="detail-kicker">
+                <span className="detail-swatch warm" />
+                <span>{loadedProject || project}</span>
+              </div>
+              <h1>{graph.stats.pages.toLocaleString()} pages</h1>
+              <div className="node-list">
+                {importantNodes.map((node) => (
+                  <button
+                    className="node-list-item"
+                    key={node.id}
+                    type="button"
+                    onClick={() => setSelectedId(node.id)}
+                  >
+                    <span className="node-swatch" style={{ backgroundColor: node.color }} />
+                    <span>{node.title}</span>
+                    <strong>{node.degree}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
     </main>
   );
 }

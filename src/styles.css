@@ -132,6 +132,7 @@ button {
 }
 
 .top-dock,
+.right-rail,
 .settings-dock,
 .selection-summary,
 .preview-dock,
@@ -272,14 +273,29 @@ input {
 }
 
 .settings-dock {
-  top: 18px;
-  right: 18px;
-  width: min(308px, calc(100vw - 36px));
-  max-height: calc(100vh - 36px);
   display: grid;
   gap: 10px;
   padding: 12px;
-  overflow: hidden auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.right-rail {
+  top: 18px;
+  right: 18px;
+  bottom: 18px;
+  width: min(308px, calc(100vw - 36px));
+  display: grid;
+  gap: 10px;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.right-rail .settings-dock,
+.right-rail .inspector-dock {
+  position: relative;
+  top: auto;
+  right: auto;
+  width: auto;
 }
 
 .settings-header {
@@ -402,7 +418,7 @@ input {
 
 .micro-slider {
   display: grid;
-  grid-template-columns: 46px minmax(120px, 1fr) 42px;
+  grid-template-columns: 68px minmax(96px, 1fr) 52px;
   align-items: center;
   gap: 8px;
   color: var(--muted);
@@ -458,12 +474,9 @@ input[type="range"] {
 }
 
 .inspector-dock {
-  right: 18px;
-  top: 312px;
-  width: min(308px, calc(100vw - 36px));
-  max-height: min(calc(100vh - 330px), 460px);
-  overflow: hidden auto;
   padding: 14px;
+  min-height: 0;
+  overflow: auto;
 }
 
 .page-detail {
@@ -654,6 +667,10 @@ input[type="range"] {
 }
 
 @media (max-width: 760px) {
+  .right-rail {
+    display: contents;
+  }
+
   .top-dock {
     top: 12px;
     left: 12px;
@@ -692,6 +709,7 @@ input[type="range"] {
     bottom: max(10px, env(safe-area-inset-bottom));
     left: 10px;
     width: auto;
+    min-height: auto;
     max-height: min(76dvh, 620px);
     padding: 10px;
     border-color: rgba(148, 155, 166, 0.26);
@@ -757,6 +775,7 @@ input[type="range"] {
     left: 12px;
     top: auto;
     width: auto;
+    min-height: auto;
     max-height: 27vh;
   }
 
@@ -771,7 +790,7 @@ input[type="range"] {
   }
 
   .micro-slider {
-    grid-template-columns: 42px minmax(80px, 1fr) 36px;
+    grid-template-columns: 58px minmax(72px, 1fr) 42px;
   }
 
   .tool-grid {
